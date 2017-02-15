@@ -18,4 +18,6 @@ Cluster3 <- csv03$Inertia
 
 # make our dataframe
 df <- data.frame(Picture = csv01$ID, Cluster1 = Cluster1, Cluster2 = Cluster2, Cluster3 = Cluster3)
+df <- melt(df)
 
+ggplot(df, aes(variable, value, group=factor(Picture))) + geom_line(aes(color=factor(Picture)))
