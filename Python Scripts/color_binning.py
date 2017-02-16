@@ -31,7 +31,8 @@ def color_extract(img, clusters):
     image = image.reshape((image.shape[0] * image.shape[1], 3))
 
     # delete all the bright green pixels
-    # image = image[np.all(image != bg_col, axis=1)]
+    image = image[np.all(image != bg_col, axis=1)]
+    image = image[np.logical_not(np.logical_and(image[:,0]<45, image[:,1]>180, image[:,2]<50))]
 
     # cluster pixel colors using kmeans algorithm
     # use number of specimens bins +1 because the +1 will be the bright green - we want to bin that and then ignore it!
