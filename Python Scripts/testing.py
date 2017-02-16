@@ -4,7 +4,7 @@ import os
 from sklearn.cluster import KMeans
 
 os.chdir('/Users/hannah/Dropbox/Colorful Fishinator/Python Scripts')
-img = '../Test/chpau_01.jpg'
+img = '../../Test/chpau_01.jpg'
 
 image = cv2.imread(img)
 
@@ -15,6 +15,7 @@ image = image.reshape((image.shape[0] * image.shape[1], 3))
 bg_col = np.array([0, 255, 1])
 
 image = image[np.all(image != bg_col, axis=1)]
+image = image[np.logical_not(np.logical_and(image[:,0]<20, image[:,1]>230, image[:,2]<20))]
 
 clt = KMeans(n_clusters = 4)
 
