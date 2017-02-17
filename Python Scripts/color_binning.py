@@ -50,7 +50,7 @@ def color_extract(img, clusters):
     im2 = ax2.imshow(bar)
 
     plt.axis("off")
-    zippy = sorted(zippy, reverse = True)
+    # zippy = sorted(zippy, reverse = True)
     zippy = [i for j in zippy for i in j]
     zippy = [i for j in zippy for i in j.flatten('F')]
     zippy = [clt.inertia_] + zippy
