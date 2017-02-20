@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # provide max number of clusters and output folder
-c=6
+c=1
 
 # folder full of images you want to analyze
 in=/Users/hannah/Dropbox/Colorful_Fishinator/Images/
@@ -15,8 +15,3 @@ do
 	outfolder=${out}0${i}Color/
 	python /Users/hannah/Dropbox/Colorful_Fishinator/Code/Python\ Scripts/fish_loops.py -f ${in} -o ${outfolder} -c ${i}
 done
-
-# clusterFish ()
-# {
-#
-# }
