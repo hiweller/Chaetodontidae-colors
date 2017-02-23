@@ -8,6 +8,7 @@ import cv2
 import time
 import glob
 import csv
+import pickle
 
 """
 NEXT STEPS:
@@ -42,6 +43,17 @@ if args["batchname"] != None:
 else:
     batch = "_" + str(c) + "Clusters.png"
 
+# kmeansFits = []
+#
+# for i in range(len(imageDir)):
+#     # new = ce.color_extract(imageDir[i], c)
+#     kmeansFits.append(ce.color_extract(imageDir[i], c))
+#
+# with open(args["output"]+'outPickle.pkl', 'wb') as out:
+#     pickle.dump(kmeansFits, out)
+
+# color_extract now returns KMeans fit object (clt) - pickle dump em!
+
 for i in range(len(imageDir)):
     splitname = str.split(imageDir[i], '/')[-1]
     savename = splitname[0:len(splitname)-4]
@@ -52,7 +64,7 @@ for i in range(len(imageDir)):
 
 num = c
 colnames = ['Percent', 'R', 'G', 'B']
-header = ['ID', 'Sum of Residuals']
+header = ['ID', 'Sum of Residuals', 'Avg. Pixel Distance']
 
 for i in range(num):
     for j in range(len(colnames)):
