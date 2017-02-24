@@ -36,13 +36,20 @@ def color_extract(img, clusters):
 
     # cluster pixel colors using kmeans algorithm
     # use number of specimens bins +1 because the +1 will be the bright green - we want to bin that and then ignore it!
-    # clt = KMeans(n_clusters = (clusters+1))
+
     clt = KMeans(n_clusters = clusters)
     clt.fit(image)
 
-    # NOTE: SWAPPING OUT WITH TEST_BG FUNCTION FOR TESTING
-    zippy = utils.remove_bg(clt)
-    # zippy = utils.test_bg(clt)
+    zippy = utils.make_hist(clt)
+
+    distances = []
+
+    for i in range(image.shape[0]):
+        label = clt.labels_[i]
+        distances.append(np.linalg.norm(image[i]-clt.cluster_centers_[label]))
+
+    meanDist = np.mean(distances)
+
 
     # NOTE: I SUPER FORGOT TO WRITE THIS PART BEFORE TRYING TO RUN THE CODE AND BANGED MY HEAD AGAINST THE WALL FOR LIKE AN HOUR TRYING TO FIX THIS!! WHAT A FOOL I AM
     # makes the bar plot + adds it to the bottom of our saved image
@@ -50,10 +57,13 @@ def color_extract(img, clusters):
     im2 = ax2.imshow(bar)
 
     plt.axis("off")
-    zippy = sorted(zippy, reverse = True)
+    # zippy = sorted(zippy, reverse = True)
     zippy = [i for j in zippy for i in j]
     zippy = [i for j in zippy for i in j.flatten('F')]
+    zippy = [meanDist] + zippy
     zippy = [clt.inertia_] + zippy
     zippy.insert(0, img[0:len(img)-4])
 
     return zippy
+
+    # return clt
