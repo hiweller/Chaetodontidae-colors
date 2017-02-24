@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 setwd('~/Dropbox/Westneat_Lab/Chaetodontidae_colors/')
 source('~/Dropbox/Westneat_Lab/Chaetodontidae_colors/Code/R Code/sourceMe.R')
+=======
+setwd('~/Dropbox/Colorful_Fishinator/')
+source('~/Dropbox/Colorful_Fishinator/Code/R Code/sourceMe.R')
+>>>>>>> 5b40e7951318a7a827b48fc25d38d2a98aeeb0ff
 
 # save(x=inertia, file='./Code/R Code/Inertia.RData')
 
@@ -10,6 +15,7 @@ library(reshape2)
 # match image to species/genus
 # instead of normalized residual sum, plot slope between each set of points
 # ...catterplots
+<<<<<<< HEAD
 bigDir <- './ClusterPickles/'
 outDir <- dir('./ClusterPickles/', pattern='*ClusterSpread.csv')
 
@@ -63,6 +69,8 @@ jumpGraph(df[1:200,], j=10, "Avg. Cluster Spread")
 
 
 
+=======
+>>>>>>> 5b40e7951318a7a827b48fc25d38d2a98aeeb0ff
 
 df <- melt(inertia)
 df <- melt(inertiaD1)
@@ -78,7 +86,11 @@ jumpGraph <- function(inputDF, j, ylab) {
     
     df <- melt(inputDF[start:end,])
     
+<<<<<<< HEAD
     p <- ggplot(df, aes(variable, value, group=factor(ID))) + geom_line(aes(color=factor(ID)))
+=======
+    p <- ggplot(df, aes(variable, value, group=factor(ID))) + geom_line(aes(color=factor(Species)))
+>>>>>>> 5b40e7951318a7a827b48fc25d38d2a98aeeb0ff
     p <- p + xlab("Number of Clusters") + ylab(ylab) + ggtitle(paste("Images", start, "to", end, sep=" "))
     # p <- p + theme(legend.position="none")
     print(p)
@@ -91,12 +103,17 @@ jumpGraph(inertiaD1, 50, ylab="Drop in avg. pixel distance")
 
 jumpGraph(inertiaD2, 50, ylab="Rate of change in avg. pixel distance")
 
+<<<<<<< HEAD
 dfTemp <- df[df$ID=="folon_05.jpg",]
 dfTemp <- melt(dfTemp)
 p <- ggplot(dfTemp, aes(variable, value, group=factor(ID))) + geom_line(aes(color=factor(ID)))
 # p <- p + xlab("Number of Clusters") + ylab(ylab) + ggtitle(paste("Images", start, "to", end, sep=" "))
 # p <- p + theme(legend.position="none")
 print(p)
+=======
+
+
+>>>>>>> 5b40e7951318a7a827b48fc25d38d2a98aeeb0ff
 
 
 

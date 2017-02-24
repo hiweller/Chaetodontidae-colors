@@ -1,9 +1,14 @@
+<<<<<<< HEAD
 setwd('~/Dropbox/Westneat_Lab/Chaetodontidae_colors/')
+=======
+setwd('~/Dropbox/Colorful_Fishinator/')
+>>>>>>> 5b40e7951318a7a827b48fc25d38d2a98aeeb0ff
 
 library(ggplot2)
 
 # read in all the output CSVs
 # outputDirectories <- dir('./Out/', pattern='*Color')
+<<<<<<< HEAD
 bigDir <- './ClusterPickles/'
 outDir <- dir('./ClusterPickles/', pattern='*ClusterSpread.csv')
 
@@ -32,22 +37,40 @@ dfTemp <- df[df$Species=="Forcipiger longirostris",]
 
 
 
+=======
+>>>>>>> 5b40e7951318a7a827b48fc25d38d2a98aeeb0ff
 bigDir <- './Out/'
 outputDirectories <- dir(bigDir, pattern='*Color')
 lim <- length(outputDirectories)
 
 # get the names of the images themselves
 imNames <- as.character(read.csv(paste(bigDir, outputDirectories[1], '/out.csv', sep=''))$ID)
+<<<<<<< HEAD
 imNames <- as.character(sapply(imNames, function(x) tail(unlist(strsplit(x, '/')), 1)))
 imNames <- as.character(sapply(imNames, function(x) substr(x, 1, nchar(x)-4)))
+=======
+>>>>>>> 5b40e7951318a7a827b48fc25d38d2a98aeeb0ff
 
 # species (c1) and filename (c2) for each image
 nameRef <- read.csv('Chaet_Fishinator_Photo_Sources.csv')[,1:2]
 
+<<<<<<< HEAD
 # original images which also have clustered images
 overlap <- nameRef[which(nameRef$File.Name %in% imNames),] # ok seems to be working now
 
 matchFish <- sapply(imNames, function(x) as.character(overlap[match(x,overlap[,2]),]$Species))
+=======
+# for the record i tried an apply function here and it was more confusing and not faster :/
+imNames2 <- vector()
+for (i in 1:length(imNames)) {
+  imNames2 <- c(imNames2, tail(unlist(strsplit(imNames[i], '/')), 1))
+}
+
+# original images which also have clustered images
+overlap <- nameRef[which(nameRef$File.Name %in% imNames2),] # ok seems to be working now
+
+matchFish <- sapply(imNames2, function(x) as.character(overlap[match(x,overlap[,2]),]$Species))
+>>>>>>> 5b40e7951318a7a827b48fc25d38d2a98aeeb0ff
 
 inertia <- data.frame(ID=imNames2, Species=matchFish)
 # from imNames2, for each row, get the matching species name and append that to the dataframe

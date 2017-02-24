@@ -20,15 +20,19 @@ NEXT STEPS:
 """
 
 os.chdir('/Users/hannah/Dropbox/Westneat_Lab/Chaetodontidae_colors/Code/Python Scripts')
+<<<<<<< HEAD
 output = '/Users/hannah/Dropbox/Westneat_Lab/Chaetodontidae_colors/ClusterPickles/'
 pickleDir = glob.glob('/Users/hannah/Dropbox/Westneat_Lab/Chaetodontidae_colors/ClusterPickles/*Generator.pkl')
 imDir = glob.glob('/Users/hannah/Dropbox/Westneat_Lab/Chaetodontidae_colors/Images/*.jpg')
 imDir.extend(glob.glob('/Users/hannah/Dropbox/Westneat_Lab/Chaetodontidae_colors/Images/*.png'))
+=======
+>>>>>>> 5b40e7951318a7a827b48fc25d38d2a98aeeb0ff
 
 bg_col = np.array([0, 255, 1])
 
 for gen in pickleDir[0:2]:
 
+<<<<<<< HEAD
     i = 0
     pixDist = []
     with open(gen, 'r') as f:
@@ -99,6 +103,151 @@ for gen in pickleDir[0:2]:
 #
 #     for l in bigList:
 #         pickle.dump(l, f)
+=======
+
+output = '/Users/hannah/Dropbox/Westneat_Lab/Chaetodontidae_colors/ClusterPickles/'
+
+pickleDir = glob.glob('/Users/hannah/Dropbox/Westneat_Lab/Chaetodontidae_colors/ClusterPickles/*Generator.pkl')
+imDir = glob.glob('/Users/hannah/Dropbox/Westneat_Lab/Chaetodontidae_colors/Images/*.jpg')
+imDir.extend(glob.glob('/Users/hannah/Dropbox/Westneat_Lab/Chaetodontidae_colors/Images/*.png'))
+
+bg_col = np.array([0, 255, 1])
+
+gen = pickleDir[0]
+# i = 0
+# pixDist = []
+# with open(gen, 'r') as f:
+#
+#     for clt in utils.pickleLoader(f):
+#
+#         image = imDir[i]
+#
+#         image = cv2.imread(image) # read in raw image (BGR)
+#         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) # convert to RGB
+#         # bg_col = np.array([0, 255, 1], dtype = 'uint8')
+#
+#         # reshape into pixel matrix
+#         image = image.reshape((image.shape[0] * image.shape[1], 3))
+#
+#         # delete all the bright green pixels
+#         image = image[np.all(image != bg_col, axis=1)]
+#         image = image[np.logical_not(np.logical_and(image[:,0]<45, image[:,1]>180, image[:,2]<50))]
+#
+#         distances = []
+#
+#         for c in np.unique(clt.labels_):
+#             pix = image[clt.labels_==c]
+#             distances.append([np.linalg.norm(pix[j]-clt.cluster_centers_[c]) for j in pix])
+#
+#
+#         # print [np.mean(n) for n in distances]
+#
+#         i = i + 1
+#
+#         pixDist.append(distances)
+#
+#     pixMeans = []
+#
+#     for el in pixDist:
+#         pixMeans.append([np.mean(n) for n in el])
+#
+#     pixMeans = [i for j in pixMeans for i in j]
+#
+#     zippy = zip(imDir, pixMeans, pixDist)
+#
+#     header = ['ID', 'Avg. Cluster Spread']
+#
+#     for i in range(len(pixDist[0])):
+#         header.append('Cluster' + str(i+1) + ' Spread')
+#
+#
+#     outCSV = output+item.split('/')[-1][0:2]+'ClusterSpread.csv'
+#     with open(outCSV, 'wb') as f:
+#         writer = csv.writer(f)
+#         writer.writerow(header)
+#         writer.writerows(zippy)
+>>>>>>> 5b40e7951318a7a827b48fc25d38d2a98aeeb0ff
+
+
+for gen in pickleDir:
+
+<<<<<<< HEAD
+
+# imDir = glob.glob('../../Images/*.jpg')
+# imDir.extend(glob.glob('../../Images/*.png'))
+#
+# i = 0
+#
+# color1 = pickle.load(open(pickleDir[0], 'rb'))
+
+
+
+=======
+    i = 0
+    pixDist = []
+    with open(gen, 'r') as f:
+
+        for clt in utils.pickleLoader(f):
+
+            image = imDir[i]
+
+            image = cv2.imread(image) # read in raw image (BGR)
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) # convert to RGB
+            # bg_col = np.array([0, 255, 1], dtype = 'uint8')
+
+            # reshape into pixel matrix
+            image = image.reshape((image.shape[0] * image.shape[1], 3))
+
+            # delete all the bright green pixels
+            image = image[np.all(image != bg_col, axis=1)]
+            image = image[np.logical_not(np.logical_and(image[:,0]<45, image[:,1]>180, image[:,2]<50))]
+
+            distances = []
+
+            for c in np.unique(clt.labels_):
+                pix = image[clt.labels_==c]
+                distances.append([np.linalg.norm(pix[j]-clt.cluster_centers_[c]) for j in pix])
+
+
+            # print [np.mean(n) for n in distances]
+
+            i = i + 1
+
+            pixDist.append(distances)
+
+        pixMeans = []
+
+        for el in pixDist:
+            pixMeans.append([np.mean(n) for n in el])
+
+        pixMeans = [i for j in pixMeans for i in j]
+
+        zippy = zip(imDir, pixMeans, pixDist)
+
+        header = ['ID', 'Avg. Cluster Spread']
+
+        for i in range(len(pixDist[0])):
+            header.append('Cluster' + str(i+1) + ' Spread')
+
+
+        outCSV = output+item.split('/')[-1][0:2]+'ClusterSpread.csv'
+        with open(outCSV, 'wb') as f:
+            writer = csv.writer(f)
+            writer.writerow(header)
+            writer.writerows(zippy)
+
+
+
+# test = open('../../ClusterPickles/01Generator.pkl', 'r')
+# test1 = pickle.load(test) # generator object
+# for item in pickleDir:
+#
+#     bigList = pickle.load(open(item, 'r'))
+#
+#     f = open('../../ClusterPickles/'+item.split('/')[-1][0:2]+'Generator.pkl', 'wb')
+#
+#     for l in bigList:
+#         pickle.dump(l, f)
 
 
 
@@ -112,6 +261,7 @@ for gen in pickleDir[0:2]:
 
 
 
+>>>>>>> 5b40e7951318a7a827b48fc25d38d2a98aeeb0ff
 #
 #
 

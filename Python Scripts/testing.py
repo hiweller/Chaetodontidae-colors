@@ -10,6 +10,7 @@ import glob
 import csv
 import pickle
 import os
+<<<<<<< HEAD
 import numpy as np
 
 os.chdir('/Users/hannah/Dropbox/Westneat_Lab/Chaetodontidae_colors/Code/Python Scripts')
@@ -19,6 +20,17 @@ imDir = glob.glob('/Users/hannah/Dropbox/Westneat_Lab/Chaetodontidae_colors/Imag
 imDir.extend(glob.glob('/Users/hannah/Dropbox/Westneat_Lab/Chaetodontidae_colors/Images/*.png'))
 
 bg_col = np.array([0, 255, 1])
+=======
+from sklearn.cluster import KMeans
+import pickle
+
+os.chdir('/Users/hannah/Dropbox/Westneat_Lab/Chaetodontidae_colors/Code/Python Scripts')
+img = '../../Test/chpau_01.jpg'
+
+output = '/Users/hannah/Dropbox/Colorful_Fishinator/OutTest'
+
+image = cv2.imread(img)
+>>>>>>> 5b40e7951318a7a827b48fc25d38d2a98aeeb0ff
 
 i = 0
 pixDist = []
@@ -79,6 +91,11 @@ with open(gen, 'r') as f:
 
 
 
+<<<<<<< HEAD
+=======
+image = image[np.all(image != bg_col, axis=1)]
+image = image[np.logical_not(np.logical_and(image[:,0]<45, image[:,1]>180, image[:,2]<50))]
+>>>>>>> 5b40e7951318a7a827b48fc25d38d2a98aeeb0ff
 
 
 # output = '/Users/hannah/Dropbox/Colorful_Fishinator/OutTest'
@@ -116,6 +133,27 @@ with open(gen, 'r') as f:
 #     pix = image[clt.labels_==c]
 #     test.append([np.linalg.norm(pix[i]-clt.cluster_centers_[c]) for i in pix])
 
+<<<<<<< HEAD
+=======
+with open(output+'/pickleTest.pkl', 'wb') as out:
+    pickle.dump(clt, out)
+
+del clt
+
+with open(output+'/pickleTest.pkl', 'rb') as input:
+    clt = pickle.load(input)
+
+labels = clt.labels_
+clusters = clt.cluster_centers_
+inertia = clt.inertia_
+
+test = []
+
+for c in np.unique(clt.labels_):
+    pix = image[clt.labels_==c]
+    test.append([np.linalg.norm(pix[i]-clt.cluster_centers_[c]) for i in pix])
+
+>>>>>>> 5b40e7951318a7a827b48fc25d38d2a98aeeb0ff
 # distances = []
 #
 # for i in range(image.shape[0]):
