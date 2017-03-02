@@ -1,65 +1,29 @@
-<<<<<<< HEAD
 setwd('~/Dropbox/Westneat_Lab/Chaetodontidae_colors/')
-=======
-setwd('~/Dropbox/Colorful_Fishinator/')
->>>>>>> 5b40e7951318a7a827b48fc25d38d2a98aeeb0ff
 
 library(ggplot2)
 
-# read in all the output CSVs
-# outputDirectories <- dir('./Out/', pattern='*Color')
-<<<<<<< HEAD
-bigDir <- './ClusterPickles/'
-outDir <- dir('./ClusterPickles/', pattern='*ClusterSpread.csv')
-
-# get the names of the images themselves
-imNames <- as.character(read.csv(paste(bigDir, outputDirectories[1], '/out.csv', sep=''))$ID)
-imNames <- as.character(sapply(imNames, function(x) tail(unlist(strsplit(x, '/')), 1)))
-imNames <- as.character(sapply(imNames, function(x) substr(x, 1, nchar(x)-4)))
-
-# species (c1) and filename (c2) for each image
-nameRef <- read.csv('Chaet_Fishinator_Photo_Sources.csv')[,1:2]
-
-# original images which also have clustered images
-overlap <- nameRef[which(nameRef$File.Name %in% imNames),] # 
-matchFish <- sapply(imNames, function(x) as.character(overlap[match(x,overlap[,2]),]$Species))
-df <- data.frame(ID=imNames, Species=matchFish)
-
-for (i in 1:length(outDir)) {
-  CSV <- read.csv(paste('./ClusterPickles/', outDir[i], sep=''))$Avg..Cluster.Spread
-  df <- cbind(df, CSV)
+plot_jpeg = function(path, add=FALSE)
+{
+  require('jpeg')
+  jpg = readJPEG(path, native=T) # read the file
+  res = dim(jpg)[1:2] # get the resolution
+  if (!add) # initialize an empty plot area if add==FALSE
+    plot(1,1,xlim=c(1,res[1]),ylim=c(1,res[2]),type='n',xaxs='i',yaxs='i',xaxt='n',yaxt='n',xlab='',ylab='',bty='n', main = path)
+  rasterImage(jpg,1,1,res[1],res[2])
 }
 
-colnames(df) <- c("ID", "Species", sapply(c(1:(dim(df)[2]-2)), function(i) paste(i, 'C', sep='')))
-
-dfTemp <- df[df$Species=="Forcipiger longirostris",]
-
-
-
-
-=======
->>>>>>> 5b40e7951318a7a827b48fc25d38d2a98aeeb0ff
+# read in all the output CSVs
+# outputDirectories <- dir('./Out/', pattern='*Color')
 bigDir <- './Out/'
 outputDirectories <- dir(bigDir, pattern='*Color')
 lim <- length(outputDirectories)
 
 # get the names of the images themselves
 imNames <- as.character(read.csv(paste(bigDir, outputDirectories[1], '/out.csv', sep=''))$ID)
-<<<<<<< HEAD
-imNames <- as.character(sapply(imNames, function(x) tail(unlist(strsplit(x, '/')), 1)))
-imNames <- as.character(sapply(imNames, function(x) substr(x, 1, nchar(x)-4)))
-=======
->>>>>>> 5b40e7951318a7a827b48fc25d38d2a98aeeb0ff
 
 # species (c1) and filename (c2) for each image
 nameRef <- read.csv('Chaet_Fishinator_Photo_Sources.csv')[,1:2]
 
-<<<<<<< HEAD
-# original images which also have clustered images
-overlap <- nameRef[which(nameRef$File.Name %in% imNames),] # ok seems to be working now
-
-matchFish <- sapply(imNames, function(x) as.character(overlap[match(x,overlap[,2]),]$Species))
-=======
 # for the record i tried an apply function here and it was more confusing and not faster :/
 imNames2 <- vector()
 for (i in 1:length(imNames)) {
@@ -70,7 +34,6 @@ for (i in 1:length(imNames)) {
 overlap <- nameRef[which(nameRef$File.Name %in% imNames2),] # ok seems to be working now
 
 matchFish <- sapply(imNames2, function(x) as.character(overlap[match(x,overlap[,2]),]$Species))
->>>>>>> 5b40e7951318a7a827b48fc25d38d2a98aeeb0ff
 
 inertia <- data.frame(ID=imNames2, Species=matchFish)
 # from imNames2, for each row, get the matching species name and append that to the dataframe
@@ -126,4 +89,33 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
                                       layout.pos.col = matchidx$col))
     }
   }
+}
+
+# function for plotting colors in an image in RGB space
+# takes path to (greenscreened) image, number of points you want to plot (<20000 recommended), and whether or not you want to reverse axes to look at graph from other vertex
+pixelPlot <- function(path, n, rev=TRUE) {
+  
+  img <- readJPEG(path)
+  dim(img) <- c(dim(img)[1]*dim(img)[2], 3)
+  # always do it the crappy way first so when you do it the decent way you feel like a genius instead of barely on par!
+  idx <- c()
+  
+  v <- round(seq(1, dim(img)[1], dim(img)[1]/n))
+  
+  img2 <- img[v,]
+  
+  for (i in 1:dim(img2)[1]) {
+    row <- img2[i,]
+    if (row[1] <= 120/255 & row[2] >= 150/255 & row[3] <=120/255) {
+      idx <- c(idx, i)
+    }
+  }
+  img3 <- img2[-idx,]
+  
+  rgbExp <- apply(img3, 1, function(x) rgb(x[1], x[2], x[3]))
+  
+  if (rev) 
+  {scatterplot3d(img3, pch=20, color = rgbExp, xlab = "R", ylab="G", zlab="B", main = paste(path, n, " points", sep=" "))} 
+  else 
+  {scatterplot3d(-img3, pch=20, color = rgbExp, xlab = "R", ylab="G", zlab="B", main = paste("Rev.", path, n, "points", sep=" "))}
 }

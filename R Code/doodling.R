@@ -1,11 +1,5 @@
-<<<<<<< HEAD
 setwd('~/Dropbox/Westneat_Lab/Chaetodontidae_colors/')
 source('~/Dropbox/Westneat_Lab/Chaetodontidae_colors/Code/R Code/sourceMe.R')
-=======
-setwd('~/Dropbox/Colorful_Fishinator/')
-source('~/Dropbox/Colorful_Fishinator/Code/R Code/sourceMe.R')
->>>>>>> 5b40e7951318a7a827b48fc25d38d2a98aeeb0ff
-
 # save(x=inertia, file='./Code/R Code/Inertia.RData')
 
 library(ggplot2)
@@ -15,12 +9,11 @@ library(reshape2)
 # match image to species/genus
 # instead of normalized residual sum, plot slope between each set of points
 # ...catterplots
-<<<<<<< HEAD
 bigDir <- './ClusterPickles/'
 outDir <- dir('./ClusterPickles/', pattern='*ClusterSpread.csv')
 
 # get the names of the images themselves
-imNames <- as.character(read.csv(paste(bigDir, outputDirectories[1], '/out.csv', sep=''))$ID)
+imNames <- as.character(read.csv(paste(bigDir, outDir[1], sep=''))$ID)
 imNames <- as.character(sapply(imNames, function(x) tail(unlist(strsplit(x, '/')), 1)))
 imNames <- as.character(sapply(imNames, function(x) substr(x, 1, nchar(x)-4)))
 
@@ -46,31 +39,20 @@ p <- p + xlab("Number of clusters") + ylab("Avg. cluster spread")
 print(p)
 
 species <- unique(df$Species)
-
-for (i in 1:length(species)) {
+# i = 71
+for (i in 86:length(species)) {
   dfTemp <- df[df$Species==species[i],]
   dfTemp <- melt(dfTemp)
-  p <- ggplot(dfTemp, aes(variable, value, group=factor(ID))) + geom_line(aes(color=factor(ID)))
+  p <- ggplot(dfTemp, aes(variable, value, group=factor(ID))) + geom_line(aes(color=factor(ID))) + guides(color=guide_legend(title="Species"))
   p <- p + xlab("Number of clusters") + ylab("Avg. cluster spread") + ggtitle(species[i])
   print(p)
-  invisible(readline(prompt="Press [enter] to continue"))
+  invisible(readline(prompt="Press [enter] to continue or [esc] to exit the loop"))
 }
 
 
 jumpGraph(df[1:200,], j=10, "Avg. Cluster Spread")
 
 
-
-
-
-
-
-
-
-
-
-=======
->>>>>>> 5b40e7951318a7a827b48fc25d38d2a98aeeb0ff
 
 df <- melt(inertia)
 df <- melt(inertiaD1)
@@ -85,12 +67,8 @@ jumpGraph <- function(inputDF, j, ylab) {
     if ((i+j) < dim(inputDF)[1]) { end <- i+j } else { end <- dim(inputDF)[1]}
     
     df <- melt(inputDF[start:end,])
-    
-<<<<<<< HEAD
-    p <- ggplot(df, aes(variable, value, group=factor(ID))) + geom_line(aes(color=factor(ID)))
-=======
+
     p <- ggplot(df, aes(variable, value, group=factor(ID))) + geom_line(aes(color=factor(Species)))
->>>>>>> 5b40e7951318a7a827b48fc25d38d2a98aeeb0ff
     p <- p + xlab("Number of Clusters") + ylab(ylab) + ggtitle(paste("Images", start, "to", end, sep=" "))
     # p <- p + theme(legend.position="none")
     print(p)
@@ -103,18 +81,13 @@ jumpGraph(inertiaD1, 50, ylab="Drop in avg. pixel distance")
 
 jumpGraph(inertiaD2, 50, ylab="Rate of change in avg. pixel distance")
 
-<<<<<<< HEAD
+
 dfTemp <- df[df$ID=="folon_05.jpg",]
 dfTemp <- melt(dfTemp)
 p <- ggplot(dfTemp, aes(variable, value, group=factor(ID))) + geom_line(aes(color=factor(ID)))
 # p <- p + xlab("Number of Clusters") + ylab(ylab) + ggtitle(paste("Images", start, "to", end, sep=" "))
 # p <- p + theme(legend.position="none")
 print(p)
-=======
-
-
->>>>>>> 5b40e7951318a7a827b48fc25d38d2a98aeeb0ff
-
 
 
 

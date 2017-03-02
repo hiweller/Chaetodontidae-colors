@@ -57,7 +57,7 @@ else:
 for i in range(len(imageDir)):
     splitname = str.split(imageDir[i], '/')[-1]
     savename = splitname[0:len(splitname)-4]
-    new = ce.color_extract(imageDir[i], c)
+    new = ce.color_extract_sample(imageDir[i], c)
     zippy.append(new)
     plt.savefig(args["output"] + savename + batch)
     plt.close("all")

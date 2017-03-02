@@ -43,9 +43,6 @@ def pickleLoader(pklFile):
             yield pickle.load(pklFile)
     except EOFError:
         pass
-<<<<<<< HEAD
 
 def straightUpED(arr1, arr2):
     return np.sqrt((arr1[0]-arr2[0])**2 + (arr1[1]-arr2[1])**2 + (arr1[2]-arr2[2])**2)
-=======
->>>>>>> 5b40e7951318a7a827b48fc25d38d2a98aeeb0ff

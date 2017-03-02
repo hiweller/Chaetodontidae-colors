@@ -10,92 +10,90 @@ import glob
 import csv
 import pickle
 import os
-<<<<<<< HEAD
 import numpy as np
+from sklearn.utils import shuffle
 
 os.chdir('/Users/hannah/Dropbox/Westneat_Lab/Chaetodontidae_colors/Code/Python Scripts')
-output = '/Users/hannah/Dropbox/Westneat_Lab/Chaetodontidae_colors/ClusterPickles/'
-pickleDir = glob.glob('/Users/hannah/Dropbox/Westneat_Lab/Chaetodontidae_colors/ClusterPickles/*Generator.pkl')
-imDir = glob.glob('/Users/hannah/Dropbox/Westneat_Lab/Chaetodontidae_colors/Images/*.jpg')
-imDir.extend(glob.glob('/Users/hannah/Dropbox/Westneat_Lab/Chaetodontidae_colors/Images/*.png'))
+imDir = glob.glob('/Users/hannah/Dropbox/Westneat_Lab/Chaetodontidae_colors/GoodQualityImages/*.jpg')
+imDir.extend(glob.glob('/Users/hannah/Dropbox/Westneat_Lab/Chaetodontidae_colors/GoodQualityImages/*.png'))
 
 bg_col = np.array([0, 255, 1])
-=======
-from sklearn.cluster import KMeans
-import pickle
-
-os.chdir('/Users/hannah/Dropbox/Westneat_Lab/Chaetodontidae_colors/Code/Python Scripts')
-img = '../../Test/chpau_01.jpg'
 
 output = '/Users/hannah/Dropbox/Colorful_Fishinator/OutTest'
 
-image = cv2.imread(img)
->>>>>>> 5b40e7951318a7a827b48fc25d38d2a98aeeb0ff
+image = cv2.imread(imDir[0])
 
-i = 0
-pixDist = []
-gen = pickleDir[0]
-with open(gen, 'r') as f:
+image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-    for clt in utils.pickleLoader(f):
+image = image.reshape((image.shape[0] * image.shape[1], 3))
 
-        image = imDir[i]
+bg_col = np.array([0, 255, 1])
 
-        image = cv2.imread(image) # read in raw image (BGR)
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) # convert to RGB
-        # bg_col = np.array([0, 255, 1], dtype = 'uint8')
-
-        # reshape into pixel matrix
-        image = image.reshape((image.shape[0] * image.shape[1], 3))
-
-        # delete all the bright green pixels
-        image = image[np.all(image != bg_col, axis=1)]
-        image = image[np.logical_not(np.logical_and(image[:,0]<45, image[:,1]>180, image[:,2]<50))]
-
-        distances = []
-
-        for c in np.unique(clt.labels_):
-            pix = image[clt.labels_==c]
-            # tempDist = []
-            distances.append([np.linalg.norm(j-clt.cluster_centers_[c]) for j in pix])
-            # for j in pix:
-            #     tempDist.append(np.linalg.norm(j-clt.cluster_centers_[c]))
-            #
-            # distances.append(tempDist)
-            # distances.append([np.linalg.norm(j-clt.cluster_centers_[c]) for j in pix])
-
-
-        # print [np.mean(n) for n in distances]
-        print i
-        i = i + 1
-
-        pixDist.append(distances)
-
-    pixMeans = []
-
-    for el in pixDist:
-        pixMeans.append([np.mean(n) for n in el])
-
-    zippy = zip(imDir, [np.mean(n) for n in pixMeans])
-
-    header = ['ID', 'Avg. Cluster Spread']
-        #
-        # for i in range(len(pixDist[0])):
-        #     header.append('Cluster' + str(i+1) + ' Spread')
-
-
-
-
-# os.chdir('/Users/hannah/Dropbox/Westneat_Lab/Chaetodontidae_colors/Code/Python Scripts')
-# img = '../../Test/chpau_01.jpg'
-
-
-
-<<<<<<< HEAD
-=======
 image = image[np.all(image != bg_col, axis=1)]
 image = image[np.logical_not(np.logical_and(image[:,0]<45, image[:,1]>180, image[:,2]<50))]
->>>>>>> 5b40e7951318a7a827b48fc25d38d2a98aeeb0ff
+
+image_array_sample = shuffle(image, random_state=0)[:1000]
+
+clt = KMeans(n_clusters = 4)
+
+clt.fit(image)
+
+
+
+
+
+
+
+
+# i = 0
+# pixDist = []
+# gen = pickleDir[0]
+# with open(gen, 'r') as f:
+#
+#     for clt in utils.pickleLoader(f):
+#
+#         image = imDir[i]
+#
+#         image = cv2.imread(image) # read in raw image (BGR)
+#         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) # convert to RGB
+#         # bg_col = np.array([0, 255, 1], dtype = 'uint8')
+#
+#         # reshape into pixel matrix
+#         image = image.reshape((image.shape[0] * image.shape[1], 3))
+#
+#         # delete all the bright green pixels
+#         image = image[np.all(image != bg_col, axis=1)]
+#         image = image[np.logical_not(np.logical_and(image[:,0]<45, image[:,1]>180, image[:,2]<50))]
+#
+#         distances = []
+#
+#         for c in np.unique(clt.labels_):
+#             pix = image[clt.labels_==c]
+#             # tempDist = []
+#             distances.append([np.linalg.norm(j-clt.cluster_centers_[c]) for j in pix])
+#
+#         # print [np.mean(n) for n in distances]
+#         print i
+#         i = i + 1
+#
+#         pixDist.append(distances)
+#
+#     pixMeans = []
+#
+#     for el in pixDist:
+#         pixMeans.append([np.mean(n) for n in el])
+#
+#     zippy = zip(imDir, [np.mean(n) for n in pixMeans])
+#
+#     header = ['ID', 'Avg. Cluster Spread']
+#         #
+#         # for i in range(len(pixDist[0])):
+#         #     header.append('Cluster' + str(i+1) + ' Spread')
+#
+#
+#
+#
+
 
 
 # output = '/Users/hannah/Dropbox/Colorful_Fishinator/OutTest'
@@ -133,27 +131,17 @@ image = image[np.logical_not(np.logical_and(image[:,0]<45, image[:,1]>180, image
 #     pix = image[clt.labels_==c]
 #     test.append([np.linalg.norm(pix[i]-clt.cluster_centers_[c]) for i in pix])
 
-<<<<<<< HEAD
-=======
-with open(output+'/pickleTest.pkl', 'wb') as out:
-    pickle.dump(clt, out)
 
-del clt
+# labels = clt.labels_
+# clusters = clt.cluster_centers_
+# inertia = clt.inertia_
+#
+# test = []
+#
+# for c in np.unique(clt.labels_):
+#     pix = image[clt.labels_==c]
+#     test.append([np.linalg.norm(pix[i]-clt.cluster_centers_[c]) for i in pix])
 
-with open(output+'/pickleTest.pkl', 'rb') as input:
-    clt = pickle.load(input)
-
-labels = clt.labels_
-clusters = clt.cluster_centers_
-inertia = clt.inertia_
-
-test = []
-
-for c in np.unique(clt.labels_):
-    pix = image[clt.labels_==c]
-    test.append([np.linalg.norm(pix[i]-clt.cluster_centers_[c]) for i in pix])
-
->>>>>>> 5b40e7951318a7a827b48fc25d38d2a98aeeb0ff
 # distances = []
 #
 # for i in range(image.shape[0]):
