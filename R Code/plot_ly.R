@@ -2,61 +2,106 @@ source('~/Dropbox/Westneat_Lab/Chaetodontidae_colors/Code/R Code/sourceMe.R')
 library(jpeg)
 library(scatterplot3d)
 library(plotly)
+library(reshape2)
+library(vegan)
+library(spatstat)
+
 imDir <- dir('./GoodQualityImages/', pattern='*.jpg')
 csvDir <- dir('./GQIOutput/', pattern='*Color')
 csvDir <- csvDir[c(2, 4:11, 1, 3)]
 
-csvToList <- function(path) {
-  df <- read.csv(path)
-  testlist <- vector("list", dim(df)[1])
+# turn data into list
+fishList <- csvToList(paste('./Output/', csvDir[1], '/out.csv', sep=''))
+
+
+
+
+# get the names of the images themselves
+imNames <- as.character(read.csv(paste('./Output/', csvDir[1], '/out.csv', sep=''))$ID)
+
+imNames <- as.character(sapply(imNames, function(x) tail(unlist(strsplit(x, '/')), 1)))
+
+# species (c1) and filename (c2) for each image
+nameRef <- read.csv('Chaet_Fishinator_Photo_Sources.csv')[,1:2]
+
+# original images which also have clustered images
+overlap <- nameRef[which(nameRef$File.Name %in% imNames),] # 
+matchFish <- sapply(imNames, function(x) as.character(overlap[match(x,overlap[,2]),]$Species))
+
+species <- unique(matchFish)
+
+for (i in 1:length(species)) {
+  group <- names(which(matchFish==species[i]))
   
-  imNames <- as.character(sapply(as.character(df$ID), function(x) tail(unlist(strsplit(x, '/')), 1)))
+  p <- colorPlot3dComp(paste('./Output/', csvDir[2], '/out.csv', sep=''), group=group, title=species[i])
+  print(p)
   
-  names(testlist) <- imNames
-  
-  Percent <- df[,seq(4, dim(df)[2], 4)]
-  Rs <- df[,seq(5, dim(df)[2], 4)]
-  Gs <- df[,seq(6, dim(df)[2], 4)]
-  Bs <- df[,seq(7, dim(df)[2], 4)]
-  
-  for (i in 1:dim(df)[1]) {
-    triplets <- data.frame(Cluster=c(1:dim(Percent)[2]),
-                           Pct=as.numeric(Percent[i,]),
-                           R=as.numeric(Rs[i,]),
-                           G=as.numeric(Gs[i,]),
-                           B=as.numeric(Bs[i,]))
-    testlist[[i]] <- triplets }
-  return(testlist)
+  invisible(readline(prompt="Press [enter] to continue or [esc] to exit the loop"))
 }
 
-colorPlot3d <- function(path, r='all') {
-  
-  fishList <- csvToList(path)
-  if (!is.numeric(r)) {
-    for (i in 1:length(fishList)) {
-      triplets <- fishList[[i]]
-      rgbExp <- apply(triplets/255, 1, function(x) rgb(x[3], x[4], x[5]))
-      p <- plot_ly(triplets, x = ~R, y = ~G, z = ~B, size=~Pct, color=~Cluster) %>%
-        add_markers(color=I(rgbExp), size=~Pct, sizes=c(1000,10000)) %>%
-        layout(scene = list(xaxis=list(title='Red'),
-                            yaxis=list(title='Green'),
-                            zaxis=list(title='Blue')), title=paste(imNames[i], path))
-      print(p)
-      invisible(readline(prompt="Press [enter] to continue or [esc] to exit the loop"))
-    }
-  } else {
-    triplets <- fishList[[r]]
-    rgbExp <- apply(triplets/255, 1, function(x) rgb(x[3], x[4], x[5]))
-    p <- plot_ly(triplets, x = ~R, y = ~G, z = ~B, size=~Pct, color=~Cluster) %>%
-      add_markers(color=I(rgbExp), size=~Pct, sizes=c(1000,10000)) %>%
-      layout(scene = list(xaxis=list(title='Red'),
-                          yaxis=list(title='Green'),
-                          zaxis=list(title='Blue')), title=imNames[r])
-    print(p)
-  }
-}
+p <- colorPlot3dComp(paste('./Output/', csvDir[2], '/out.csv', sep=''), group=names(which(matchFish="Chaetodon mesoleucos")))
 
-fishList <- csvToList(paste('./GQIOutput/', csvDir[2], '/out.csv', sep=''))
+
+group <- group06
+
+# pull out sublist from main list
+miniList <- vector("list", length(group))
+miniList <- lapply(c(1:length(group)), function(x) miniList[[x]] <- fishList[[group[x]]])
+names(miniList) <- group
+
+# flatten list into one DF for plotting; add a column of image names for identification in plot
+newDF <- miniList[[1]]
+newDF$Image <- rep(names(miniList)[1], dim(miniList[[1]])[1])
+
+for (i in 2:length(miniList)) {
+  tempDF <- miniList[[i]]
+  tempDF$Image <- rep(names(miniList)[i], dim(miniList[[i]])[1])
+  newDF <- rbind(newDF, tempDF) }
+  
+
+rgbExp <- apply(miniList[[1]][,3:5]/255, 1, function(x) rgb(x[1], x[2], x[3]))
+
+scene <- list(xaxis=list(title='Red', linecolor=toRGB('red'), linewidth=6, range=c(0,255)), 
+              yaxis=list(title='Green', linecolor=toRGB('green'), linewidth=6, range=c(0,255)), 
+              zaxis=list(title='Blue', linecolor=toRGB('blue'), linewidth=6, range=c(0,255)), 
+              camera = list(eye = list(x = -1.25, y = 1.25, z = 1.25)))
+
+p <- plot_ly(newDF, x = ~R, y = ~G, z = ~B, 
+             size=~Pct, color=~Image, 
+             text = ~paste('Image: ', Image)) %>%
+  
+  add_markers(size=~Pct, sizes=c(500,5000)) %>%
+  
+  layout(scene = scene, title=names(miniList)[1])
+
+print(p)
+
+# chart_link <- plotly_POST(p, filename = 'test')
+# chart_link
+
+
+
+
+s <- signup('hiweller', 'hiweller@uchicago.edu')
+Sys.setenv("plotly_username" = "hiweller")
+Sys.setenv("plotly_api_key" = "ov1wD4YIF9qHWL6a6yy8")
+
+
+
+
+
+
+
+
+
+
+
+
+
+colorPlot3dMulti(paste('./Output/', csvDir[2], '/out.csv', sep=''), group=group06)
+
+
+fishList <- csvToList(paste('./GQIOutput/', csvDir[1], '/out.csv', sep=''))
 
 group <- names(fishList)
 # group <- group06
@@ -92,7 +137,7 @@ group02 <- c("chadi_05", "chauri_01", "chfal_04",
              "chvag_03", "folon_02")
 
 # black and white
-group03 <- c("prguy_01", "hezos_03", "chmey_03",
+group03 <- c("prguy_01", "hezos_03", "chmey_04",
              "amhow_02", "charg_02")
 
 # stripes

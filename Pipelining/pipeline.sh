@@ -4,10 +4,10 @@
 c=100
 
 # folder full of images you want to analyze
-in=/Users/hannah/Dropbox/Westneat_Lab/Chaetodontidae_colors/GoodQualityImages/
+in=/Users/hannah/Dropbox/Westneat_Lab/Chaetodontidae_colors/ColorImages/
 
 # folder in which you want to store all the subfolders (script creates 1 folder per cluster within this folder, each of which contains all the output images + the out.csv with the RGB, percent, and inertia values)
-out=/Users/hannah/Dropbox/Westneat_Lab/Chaetodontidae_colors/GQIOutput/
+out=/Users/hannah/Dropbox/Westneat_Lab/Chaetodontidae_colors/Output/
 
 for i in $(seq 10 10 $c)
 do

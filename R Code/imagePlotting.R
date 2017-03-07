@@ -28,7 +28,6 @@ for (i in 1:dim(Rs)[1]) {
   invisible(readline(prompt="Press [enter] to continue or [esc] to exit the loop"))
 }
 
-
 # plot colors from each image in image directory
 for (i in 1:length(imDir)) {
   pixelPlot(paste('./GoodQualityImages/', imDir[i], sep=""), 10000)
