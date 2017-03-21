@@ -14,14 +14,14 @@ import numpy as np
 from sklearn.utils import shuffle
 
 os.chdir('/Users/hannah/Dropbox/Westneat_Lab/Chaetodontidae_colors/Code/Python Scripts')
-imDir = glob.glob('/Users/hannah/Dropbox/Westneat_Lab/Chaetodontidae_colors/GoodQualityImages/*.jpg')
-imDir.extend(glob.glob('/Users/hannah/Dropbox/Westneat_Lab/Chaetodontidae_colors/GoodQualityImages/*.png'))
+imDir = glob.glob('/Users/hannah/Dropbox/Westneat_Lab/Chaetodontidae_colors/Figures/GGreenImages/*.jpg')
+imDir.extend(glob.glob('/Users/hannah/Dropbox/Westneat_Lab/Chaetodontidae_colors/Figures/GreenImages/*.png'))
 
 bg_col = np.array([0, 255, 1])
 
 output = '/Users/hannah/Dropbox/Colorful_Fishinator/OutTest'
 
-image = cv2.imread(imDir[0])
+image = cv2.imread(imDir[8])
 
 image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 

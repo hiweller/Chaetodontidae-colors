@@ -1,60 +1,200 @@
 setwd('~/Dropbox/Westneat_Lab/Chaetodontidae_colors/')
 
 library(ggplot2)
+library(spatstat)
+library(clue)
+library(plotly)
+library(jpeg)
+library(scatterplot3d)
 
-colorPlot3dComp <- function(path, group='all', title=FALSE) {
+#### PLOTTING RAW DATA ####
+
+# just plots an actual picture
+# ex: plot_jpeg('Images/im1.jpg')
+plot_jpeg = function(path, add=FALSE)
+{
+  require('jpeg')
+  jpg = readJPEG(path, native=T) # read the file
+  res = dim(jpg)[1:2] # get the resolution
+  if (!add) # initialize an empty plot area if add==FALSE
+    plot(1,1,xlim=c(1,res[1]),ylim=c(1,res[2]),type='n',xaxs='i',yaxs='i',xaxt='n',yaxt='n',xlab='',ylab='',bty='n', main = path)
+  rasterImage(jpg,1,1,res[1],res[2])
+}
+
+# function for plotting colors in an image in RGB space
+# takes path to (greenscreened) image, number of points you want to plot (<20000 recommended), and whether or not you want to reverse axes to look at graph from other vertex
+# rev=TRUE just reverses axes ('green' vertex facing away)
+# ex: pixelPlot('Images/im1.jpg', n=10000)
+pixelPlot <- function(path, n='all', rev=TRUE) {
   
-  if (!is.character(title)) { title <- path }
+  img <- readJPEG(path)
+  dim(img) <- c(dim(img)[1]*dim(img)[2], 3)
+  # always do it the crappy way first so when you do it the decent way you feel like a genius instead of barely on par!
+  idx <- c()
   
-  scene <- list(xaxis=list(title='Red', linecolor=toRGB('red'), linewidth=6, range=c(0,255)), yaxis=list(title='Green', linecolor=toRGB('green'), linewidth=6, range=c(0,255)), zaxis=list(title='Blue', linecolor=toRGB('blue'), linewidth=6, range=c(0,255)), camera = list(eye = list(x = -1.25, y = 1.25, z = 1.25)))
+  if (is.numeric(n)) {v <- round(seq(1, dim(img)[1], dim(img)[1]/n))} else {v <- seq(1, dim(img)[1], 1)}
   
-  # turn out.csv into a list with 1 element per species;
-  # each element is a DF with cluster number, cluster pct, R, G, and B columns
-  fishList <- csvToList(path)
+  img2 <- img[v,]
   
-  # if a specific group has not been specified just do this for all of them
-  if (group[1]=='all') {
-    group <- names(fishList)
-  } else if (length(group)==1) {
-    newDF <- fishList[[group]]
-    newDF$Image <- rep(group, dim(newDF)[1])
-  } else {
-    
-    # new list of just the images of interest
-    newList <- vector("list", length(group))
-    
-    for (i in 1:length(group)) {
-      newList[[i]] <- fishList[[group[i]]]
-      names(newList)[i] <- group[i]
-    } 
-    
-    # flatten list into one DF for plotting; add a column of image names for identification in plot
-    newDF <- newList[[1]]
-    newDF$Image <- rep(names(newList)[1], dim(newList[[1]])[1])
-    
-    for (i in 2:length(newList)) {
-      tempDF <- newList[[i]]
-      tempDF$Image <- rep(names(newList)[i], dim(newList[[i]])[1])
-      newDF <- rbind(newDF, tempDF)
+  for (i in 1:dim(img2)[1]) {
+    row <- img2[i,]
+    if (row[1] <= 120/255 & row[2] >= 150/255 & row[3] <=120/255) {
+      idx <- c(idx, i)
     }
   }
+  img3 <- img2[-idx,]
   
+  rgbExp <- apply(img3, 1, function(x) rgb(x[1], x[2], x[3]))
   
-  # make RGB color vector so that each point in the plot will be colored according to its actual color
-  # rgbExp <- apply(newDF[,3:5]/255, 1, function(x) rgb(x[1], x[2], x[3]))
-  p <- plot_ly(newDF, x = ~R, y = ~G, z = ~B, size=~Pct, color=~Image, text = ~paste('Image: ', Image)) %>%
-    add_markers(color=~Image, size=~Pct, sizes=c(500,10000)) %>%
-    layout(scene = scene, title=title)
-  return(p)
+  if (rev) 
+  {scatterplot3d(img3, pch=20, color = rgbExp, xlab = "Red", ylab="Green", zlab="Blue", main = paste(path, n, " points", sep=" "))} 
+  else 
+  {scatterplot3d(-img3, pch=20, color = rgbExp, xlab = "Red", ylab="Green", zlab="Blue", main = paste("Rev.", path, n, "points", sep=" "))}
 }
 
 
+
+
+
+#### FORMATTING/INPUTTING OUT.CSV OBJECTS ####
+
+# turns out.csv objects returned from python into list of dataframes (1 per image), so you can plot all of them at once if you want
+# ex: fishList <- csvToList('Output/out.csv')
+csvToList <- function(path, normalize=FALSE, ordered=TRUE) {
+  df <- read.csv(path)
+  testlist <- vector("list", dim(df)[1])
+  
+  imNames <- as.character(sapply(as.character(df$ID), function(x) tail(unlist(strsplit(x, '/')), 1)))
+  
+  names(testlist) <- imNames
+  
+  Percent <- df[,seq(4, dim(df)[2], 4)]
+  Rs <- df[,seq(5, dim(df)[2], 4)]
+  Gs <- df[,seq(6, dim(df)[2], 4)]
+  Bs <- df[,seq(7, dim(df)[2], 4)]
+  
+  for (i in 1:dim(df)[1]) {
+    triplets <- data.frame(Cluster=c(1:dim(Percent)[2]),
+                           Pct=as.numeric(Percent[i,]),
+                           R=as.numeric(Rs[i,]),
+                           G=as.numeric(Gs[i,]),
+                           B=as.numeric(Bs[i,]))
+    testlist[[i]] <- triplets }
+  if (normalize) { 
+    for (i in 1:length(testlist)) {
+      tempList <- testlist[[i]]
+      tempList[,3:5] <- t(apply(tempList, 1, function(x) x[3:5]/sum(x[3:5])))
+      testlist[[i]] <- tempList
+    }
+  }
+  
+  if (ordered) {testlist <- reorderPointsHA(testlist)}
+  
+  return(testlist)
+}
+
+# subset a list; provide list and vector with subset of names you want to pull out
+# ex: newList <- subList(fishList, c("amhow_01", "amhow_02"))
+subList <- function(startList, subVec) {
+  # pull out sublist from main list:
+  # make empty list
+  miniList <- vector("list", length(subVec))
+  
+  # put each matching entry into the new list
+  miniList <- lapply(c(1:length(subVec)), function(x) miniList[[x]] <- startList[[subVec[x]]])
+  names(miniList) <- subVec
+  
+  return(miniList)
+}
+
+# takes a list generated by fishList and returns a list where every set of clusters has been reordered to match the first one
+# basic idea: computes pairwise distances between each set of points and the first set of points, then uses Hungarian algorithm (solve_LSAP from clue package) to find the minimum linear sum of the matrix and uses that ordering to reorder the second set of points
+# ex: orderedList <- reorderPointsHA(fishList)
+reorderPointsHA <- function(fishList) {
+  fishList2 <- fishList
+  
+  imgA <- pp3(fishList[[1]][,3], 
+              fishList[[1]][,4], 
+              fishList[[1]][,5], 
+              box3(c(0,255)))
+  
+  for (i in 2:length(fishList)) {
+    imgB <- pp3(fishList[[i]][,3], 
+                fishList[[i]][,4], 
+                fishList[[i]][,5], 
+                box3(c(0,255)))
+    
+    distMatrix <- crossdist(imgA, imgB)
+    
+    orders <- solve_LSAP(distMatrix, maximum = FALSE)
+    
+    fishList2[[i]] <- fishList[[i]][match(orders, fishList[[i]]$Cluster),]
+    fishList2[[i]]$Cluster <- c(1:dim(fishList[[1]])[1])
+  }
+  
+  return(fishList2)
+}
+
+# turn list into dataframe; original name of element in list becomes a new factor
+# kind of like 'melt'
+# ex: fishDF <- listToDF(fishList)
+listToDF <- function(startList) {
+  
+  # flatten list into one DF for plotting; add a column of image names for identification in plot
+  newDF <- startList[[1]]
+  newDF$Image <- rep(names(startList)[1], dim(startList[[1]])[1])
+  
+  for (i in 2:length(startList)) {
+    tempDF <- startList[[i]]
+    tempDF$Image <- rep(names(startList)[i], dim(startList[[i]])[1])
+    newDF <- rbind(newDF, tempDF) }
+  
+  return(newDF)
+} 
+
+
+
+
+
+#### 3D PLOTS COLORED BY RGB VALUES ####
+
+# 3d scatterplots of color for out.csv objects returned from running python scripts; pass path to out.csv file
+# default is to plot ALL fish in data file one at a time, but can plot just one by specifying index number
+# ex: colorPlot3d('Output/out.csv', r=8)
+colorPlot3d <- function(path, r='all') {
+  
+  scene <- list(xaxis=list(title='Red', linecolor=toRGB('red'), linewidth=6, range=c(0,255)), yaxis=list(title='Green', linecolor=toRGB('green'), linewidth=6, range=c(0,255)), zaxis=list(title='Blue', linecolor=toRGB('blue'), linewidth=6, range=c(0,255)), camera = list(eye = list(x = 0.9, y = -1.5, z = 0.8)))
+  
+  fishList <- csvToList(path)
+  if (!is.numeric(r)) {
+    for (i in 1:length(fishList)) {
+      triplets <- fishList[[i]]
+      rgbExp <- apply(triplets/255, 1, function(x) rgb(x[3], x[4], x[5]))
+      p <- plot_ly(triplets, x = ~R, y = ~G, z = ~B, size=~Pct, color=~Cluster, opacity=1) %>%
+        add_markers(color=I(rgbExp), sizes=c(500,5000), opacity=1) %>%
+        layout(scene = scene, title=paste(names(fishList)[i], path))
+      print(p)
+      invisible(readline(prompt="Press [enter] to continue or [esc] to exit the loop"))
+    }
+  } else {
+    triplets <- fishList[[r]]
+    rgbExp <- apply(triplets/255, 1, function(x) rgb(x[3], x[4], x[5]))
+    p <- plot_ly(triplets, x = ~R, y = ~G, z = ~B, size=~Pct, color=~Cluster) %>%
+      add_markers(color=I(rgbExp), size=~Pct, sizes=c(500,5000)) %>%
+      layout(scene = scene, title=paste(names(fishList)[r]))
+    print(p)
+  }
+}
+
 # plots several fish on one color plot
+# mouseover clusters to see which image they belong to
+# provide character vector of images if you only want to plot specific images
+# ex: colorPlot3dMulti('Output/out.csv', group=c("chand_02", "chmel_04"), title="Plot title")
 colorPlot3dMulti <- function(path, group='all', title=FALSE) {
   
   if (!is.character(title)) { title <- path }
   
-  scene <- list(xaxis=list(title='Red', linecolor=toRGB('red'), linewidth=6, range=c(0,255)), yaxis=list(title='Green', linecolor=toRGB('green'), linewidth=6, range=c(0,255)), zaxis=list(title='Blue', linecolor=toRGB('blue'), linewidth=6, range=c(0,255)), camera = list(eye = list(x = -1.25, y = 1.25, z = 1.25)))
+  scene <- list(xaxis=list(title='Red', linecolor=toRGB('red'), linewidth=6, range=c(0,255)), yaxis=list(title='Green', linecolor=toRGB('green'), linewidth=6, range=c(0,255)), zaxis=list(title='Blue', linecolor=toRGB('blue'), linewidth=6, range=c(0,255)), camera = list(eye = list(x = 0.9, y = -1.5, z = 0.8)))
   
   # turn out.csv into a list with 1 element per species;
   # each element is a DF with cluster number, cluster pct, R, G, and B columns
@@ -63,11 +203,12 @@ colorPlot3dMulti <- function(path, group='all', title=FALSE) {
   # if a specific group has not been specified just do this for all of them
   if (group[1]=='all') {
     group <- names(fishList)
-  } else if (length(group)==1) {
+  } 
+  
+  if (length(group)==1) {
     newDF <- fishList[[group]]
     newDF$Image <- rep(group, dim(newDF)[1])
   } else {
-    
     # new list of just the images of interest
     newList <- vector("list", length(group))
     
@@ -91,102 +232,155 @@ colorPlot3dMulti <- function(path, group='all', title=FALSE) {
   # make RGB color vector so that each point in the plot will be colored according to its actual color
   rgbExp <- apply(newDF[,3:5]/255, 1, function(x) rgb(x[1], x[2], x[3]))
   p <- plot_ly(newDF, x = ~R, y = ~G, z = ~B, size=~Pct, color=~Cluster, text = ~paste('Image: ', Image)) %>%
-    add_markers(color=I(rgbExp), size=~Pct, sizes=c(500,10000)) %>%
+    add_markers(color=I(rgbExp), size=~Pct, sizes=c(500,5000)) %>%
     layout(scene = scene, title=title)
   return(p)
 }
 
-plot_jpeg = function(path, add=FALSE)
-{
-  require('jpeg')
-  jpg = readJPEG(path, native=T) # read the file
-  res = dim(jpg)[1:2] # get the resolution
-  if (!add) # initialize an empty plot area if add==FALSE
-    plot(1,1,xlim=c(1,res[1]),ylim=c(1,res[2]),type='n',xaxs='i',yaxs='i',xaxt='n',yaxt='n',xlab='',ylab='',bty='n', main = path)
-  rasterImage(jpg,1,1,res[1],res[2])
-}
-
-# turns out.csv objects returned from python into list of dataframes (1 per image), so you can plot all of them at once if you want
-csvToList <- function(path) {
-  df <- read.csv(path)
-  testlist <- vector("list", dim(df)[1])
-  
-  imNames <- as.character(sapply(as.character(df$ID), function(x) tail(unlist(strsplit(x, '/')), 1)))
-  
-  names(testlist) <- imNames
-  
-  Percent <- df[,seq(4, dim(df)[2], 4)]
-  Rs <- df[,seq(5, dim(df)[2], 4)]
-  Gs <- df[,seq(6, dim(df)[2], 4)]
-  Bs <- df[,seq(7, dim(df)[2], 4)]
-  
-  for (i in 1:dim(df)[1]) {
-    triplets <- data.frame(Cluster=c(1:dim(Percent)[2]),
-                           Pct=as.numeric(Percent[i,]),
-                           R=as.numeric(Rs[i,]),
-                           G=as.numeric(Gs[i,]),
-                           B=as.numeric(Bs[i,]))
-    testlist[[i]] <- triplets }
-  return(testlist)
-}
 
 
-# 3d scatterplots of color for out.csv objects returned from running python scripts; pass path to out.csv file
-colorPlot3d <- function(path, r='all') {
+
+
+#### COLOR BY INDIVIDUAL OR CLUSTER NUMBER ####
+
+# plots specified individuals in out.csv and colors them by individual instead of coloring points according to RGB values
+# provide path to out.csv and character vector of group for plotting
+# ex: colorPlot3dComp('Output/out.csv', group=c("chand_03", "chfal_04"))
+colorPlot3dComp <- function(path, group='all', title=FALSE, colors="default") {
   
-  scene <- list(xaxis=list(title='Red', linecolor=toRGB('red'), linewidth=6, range=c(0,255)), yaxis=list(title='Green', linecolor=toRGB('green'), linewidth=6, range=c(0,255)), zaxis=list(title='Blue', linecolor=toRGB('blue'), linewidth=6, range=c(0,255)), camera = list(eye = list(x = -1.25, y = 1.25, z = 1.25)))
+  if (!is.character(title)) { title <- path }
   
+  scene <- list(xaxis=list(title='Red', linecolor=toRGB('red'), linewidth=6, range=c(0,255)), yaxis=list(title='Green', linecolor=toRGB('green'), linewidth=6, range=c(0,255)), zaxis=list(title='Blue', linecolor=toRGB('blue'), linewidth=6, range=c(0,255)), camera = list(eye = list(x = 0.9, y = -1.5, z = 0.8)))
+  
+  # turn out.csv into a list with 1 element per species;
+  # each element is a DF with cluster number, cluster pct, R, G, and B columns
   fishList <- csvToList(path)
-  if (!is.numeric(r)) {
-    for (i in 1:length(fishList)) {
-      triplets <- fishList[[i]]
-      rgbExp <- apply(triplets/255, 1, function(x) rgb(x[3], x[4], x[5]))
-      p <- plot_ly(triplets, x = ~R, y = ~G, z = ~B, size=~Pct, color=~Cluster) %>%
-        add_markers(color=I(rgbExp), size=~Pct, sizes=c(1000,10000)) %>%
-        layout(scene = scene, title=paste(imNames[i], path))
-      print(p)
-      invisible(readline(prompt="Press [enter] to continue or [esc] to exit the loop"))
-    }
+  
+  # if a specific group has not been specified just do this for all of them
+  if (group[1]=='all') {
+    group <- names(fishList)
+    newDF <- fishList
+  } else if (length(group)==1) {
+    newDF <- fishList[[group]]
+    newDF$Image <- rep(group, dim(newDF)[1])
   } else {
-    triplets <- fishList[[r]]
-    rgbExp <- apply(triplets/255, 1, function(x) rgb(x[3], x[4], x[5]))
-    p <- plot_ly(triplets, x = ~R, y = ~G, z = ~B, size=~Pct, color=~Cluster) %>%
-      add_markers(color=I(rgbExp), size=~Pct, sizes=c(1000,10000)) %>%
-      layout(scene = scene, title=imNames[r])
-    print(p)
+    
+    # new list of just the images of interest
+    newList <- vector("list", length(group))
+    
+    for (i in 1:length(group)) {
+      newList[[i]] <- fishList[[group[i]]]
+      names(newList)[i] <- group[i]
+    } 
+    
+    
+    # flatten list into one DF for plotting; add a column of image names for identification in plot
+    newDF <- newList[[1]]
+    newDF$Image <- rep(names(newList)[1], dim(newList[[1]])[1])
+    
+    for (i in 2:length(newList)) {
+      tempDF <- newList[[i]]
+      tempDF$Image <- rep(names(newList)[i], dim(newList[[i]])[1])
+      newDF <- rbind(newDF, tempDF)
+    }
   }
+  
+  if (colors=="default") { colors <- viridisLite::viridis(length(newList)) }
+  
+  # make RGB color vector so that each point in the plot will be colored according to its actual color
+  # rgbExp <- apply(newDF[,3:5]/255, 1, function(x) rgb(x[1], x[2], x[3]))
+  p <- plot_ly(newDF, x = ~R, y = ~G, z = ~B, size=~Pct, color=~Image, text = ~paste('Image: ', Image)) %>%
+    add_markers(color=~Image, colors=colors, size=~Pct, sizes=c(500,5000)) %>%
+    layout(scene = scene, title=title)
+  return(p)
 }
 
-# subset a list; provide list and vector with subset of names you want to pull out
-# ex: listToDF(csvToList('./Output/10Color/out.csv'), c("amhow_01", "amhow_02"))
-subList <- function(startList, subVec) {
-  # pull out sublist from main list:
-  # make empty list
-  miniList <- vector("list", length(subVec))
+# takes a list generated by csvList and then matches each set of coordinates to the first set, then plots ordered pairs so that all C1's are same color, etc
+# ex: plotColorPairs(fishList)
+# ex: plotColorPairs(fishList, orderPts = TRUE)
+plotColorPairs <- function(fishList, title=FALSE, orderPts=FALSE, colors="default") {
   
-  # put each matching entry into the new list
-  miniList <- lapply(c(1:length(subVec)), function(x) miniList[[x]] <- startList[[subVec[x]]])
-  names(miniList) <- subVec
+  # first reorder the points
+  if (orderPts) { fishList <- reorderPointsHA(fishList) }
   
-  return(miniList)
+  # if no title provided just call it Cluster Sets
+  if (!is.character(title)) { title <- 'Cluster Sets' }
+  
+  # plotting parameters
+  scene <- list(xaxis=list(title='Red', linecolor=toRGB('red'), linewidth=6, range=c(0,255)), yaxis=list(title='Green', linecolor=toRGB('green'), linewidth=6, range=c(0,255)), zaxis=list(title='Blue', linecolor=toRGB('blue'), linewidth=6, range=c(0,255)), camera = list(eye = list(x = 0.9, y = -1.5, z = 0.8)))
+  
+  # flatten list
+  newDF <- fishList[[1]]
+  newDF$Image <- rep(names(fishList)[1], dim(fishList[[1]])[1])
+  
+  for (i in 2:length(fishList)) {
+    tempDF <- fishList[[i]]
+    tempDF$Image <- rep(names(fishList)[i], dim(fishList[[i]])[1])
+    newDF <- rbind(newDF, tempDF)
+  }
+  
+  if (colors=="default") { colors <- viridisLite::viridis(length(fishList)) }
+  
+  # make RGB color vector so that each point in the plot will be colored according to its actual color
+  # rgbExp <- apply(newDF[,3:5]/255, 1, function(x) rgb(x[1], x[2], x[3]))
+  p <- plot_ly(newDF, x = ~R, y = ~G, z = ~B, size=~Pct, color=~Cluster, text = ~paste('Image: ', Image)) %>%
+    add_markers(color=~Cluster, colors=colors, size=~Pct, sizes=c(500,5000)) %>%
+    layout(scene = scene, title=title)
+  return(p)
 }
 
-# turn list into dataframe; original name of element in list becomes a new factor
-# kind of like 'melt'
-listToDF <- function(startList) {
-  
-  # flatten list into one DF for plotting; add a column of image names for identification in plot
-  newDF <- startList[[1]]
-  newDF$Image <- rep(names(startList)[1], dim(startList[[1]])[1])
-  
-  for (i in 2:length(startList)) {
-    tempDF <- startList[[i]]
-    tempDF$Image <- rep(names(startList)[i], dim(startList[[i]])[1])
-    newDF <- rbind(newDF, tempDF) }
-  
-  return(newDF)
-} 
 
+
+
+
+#### STATISTICAL ANALYSES ####
+
+# returns euclidean distance between a pair of 3-dimensional points
+# ex: d <- euDist(c(1:3), c(4:6))
+euDist <- function(r1, r2) {
+  return(sqrt((r1[1]-r2[1])^2+(r1[2]-r2[2])^2+(r1[3]-r2[3])^2))
+}
+
+# takes two lists returned by csvToList and returns the total distance between them by calculating euclidean distance between each pair of points
+# ex: distSum(fishList[[1]], fishList[[2]])
+distSum <- function(T1, T2) {
+  return(sum(sapply(c(1:dim(T1)[1]), function(i) euDist(T1[i,3:5], T2[i,3:5]))))
+}
+
+# generates distance matrix for list of ordered clusters
+# ex: colorDistMat(fishList)
+# returns Distance.Matrix and Closest.Pairs, which is largely irrelevant now
+colorDistMat <- function(fishList) {
+  distMat <- matrix(data=NA, nrow = length(fishList), ncol = length(fishList))
+  rownames(distMat) <- names(fishList)
+  colnames(distMat) <- names(fishList)
+  go <- which(lower.tri(distMat, diag=F), arr.ind = T)
+  for (i in 1:dim(go)[1]) {
+    r <- go[i,]
+    distMat[r[1], r[2]] <- distSum(fishList[[r[1]]], fishList[[r[2]]])
+  }
+  
+  distMat[upper.tri(distMat)] <- t(distMat)[upper.tri(distMat)]
+  pairNames <- names(fishList)[apply(distMat, 2, which.min)]
+  df <- data.frame(Image=names(fishList), ClosestMatch=pairNames)
+  returnList <- list(distMat, df)
+  names(returnList) <- c("Distance.Matrix", "Closest.Pairs")
+  return(returnList)
+}
+
+# heatmap of color distances
+mapColDist <- function(fishList) {
+  fishList <- reorderPointsHA(fishList)
+  CDM <- colorDistMat(fishList)$Distance.Matrix
+  my_palette <- colorRampPalette(c("royalblue4", "ghostwhite", "goldenrod2"))(n = 299)
+  clust <- as.dist(CDM)
+  heatmap(CDM, symm=TRUE, col=my_palette, Rowv=as.dendrogram(hclust(clust)))
+}
+
+
+
+
+#### OTHER ####
 
 # plots multiple ggplot plots in one window
 multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
@@ -225,31 +419,34 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
   }
 }
 
-# function for plotting colors in an image in RGB space
-# takes path to (greenscreened) image, number of points you want to plot (<20000 recommended), and whether or not you want to reverse axes to look at graph from other vertex
-pixelPlot <- function(path, n, rev=TRUE) {
-  
-  img <- readJPEG(path)
-  dim(img) <- c(dim(img)[1]*dim(img)[2], 3)
-  # always do it the crappy way first so when you do it the decent way you feel like a genius instead of barely on par!
-  idx <- c()
-  
-  v <- round(seq(1, dim(img)[1], dim(img)[1]/n))
-  
-  img2 <- img[v,]
-  
-  for (i in 1:dim(img2)[1]) {
-    row <- img2[i,]
-    if (row[1] <= 120/255 & row[2] >= 150/255 & row[3] <=120/255) {
-      idx <- c(idx, i)
-    }
-  }
-  img3 <- img2[-idx,]
-  
-  rgbExp <- apply(img3, 1, function(x) rgb(x[1], x[2], x[3]))
-  
-  if (rev) 
-  {scatterplot3d(img3, pch=20, color = rgbExp, xlab = "R", ylab="G", zlab="B", main = paste(path, n, " points", sep=" "))} 
-  else 
-  {scatterplot3d(-img3, pch=20, color = rgbExp, xlab = "R", ylab="G", zlab="B", main = paste("Rev.", path, n, "points", sep=" "))}
-}
+
+
+
+
+#### BASIC COLOR GROUPS FOR TESTING ####
+
+# mostly yellow with black accents (spots and bars)
+group01 <- c("chsem_04", "chraf_03", "chben_05",
+             "chaurip_03", "chand_03", "chcit_04",
+             "chple_01", "chfre_02")
+
+# yellow, white, and black predominant
+group02 <- c("chadi_05", "chauri_01", "chfal_04",
+             "choxy_03", "chmel_04", "chocel_04",
+             "chvag_03", "folon_02")
+
+# black and white
+group03 <- c("prguy_01", "hezos_03", "chmey_04",
+             "amhow_02", "charg_02")
+
+# stripes
+group04 <- c("amhow_02", "checur_01", "cheros_01",
+             "chetru_05", "chhoe_01")
+
+# yellow and white
+group05 <- c("chxant_03", "chxan_04", "chtrif_04",
+             "chpau_01", "chmer_05")
+
+# red accents
+group06 <- c("chcol_04", "chfla_02", "chlar_04",
+             "chpau_01", "chtrif_04")

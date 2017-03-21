@@ -36,8 +36,6 @@ def color_extract(img, clusters):
     image = image[np.logical_not(np.logical_and(image[:,0]<45, image[:,1]>180, image[:,2]<50))]
 
     # cluster pixel colors using kmeans algorithm
-    # use number of specimens bins +1 because the +1 will be the bright green - we want to bin that and then ignore it!
-
     clt = KMeans(n_clusters = clusters)
     clt.fit(image)
 
@@ -86,6 +84,7 @@ def color_extract_sample(img, clusters):
     image = image[np.all(image != bg_col, axis=1)]
     image = image[np.logical_not(np.logical_and(image[:,0]<120, image[:,1]>150, image[:,2]<120))]
 
+    # sample 10,000 random pixels for fitting
     image = shuffle(image, random_state=0)[:10000]
 
     clt = KMeans(n_clusters = clusters)
@@ -106,7 +105,6 @@ def color_extract_sample(img, clusters):
     im2 = ax2.imshow(bar)
 
     plt.axis("off")
-    # zippy = sorted(zippy, reverse = True)
     zippy = [i for j in zippy for i in j]
     zippy = [i for j in zippy for i in j.flatten('F')]
     zippy = [meanDist] + zippy

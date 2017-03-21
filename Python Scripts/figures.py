@@ -2,10 +2,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 import cv2
+from sklearn.utils import shuffle
 
-n_colors = 4
+n_colors = 31
 
-image = '/Users/hannah/Dropbox/Westneat_Lab/Chaetodontidae_colors/Images/folon_02.jpg'
+image = '/Users/hannah/Dropbox/Westneat_Lab/Chaetodontidae_colors/Figures/GreenImages/chaetodon_ulietensis.jpeg'
 
 image = cv2.imread(image)
 
@@ -21,7 +22,9 @@ assert d == 3
 
 image_array = np.reshape(image, (w * h, d))
 
-kmeans = KMeans(n_clusters = n_colors).fit(image_array)
+image_array_sample = shuffle(image_array, random_state=0)[:1000]
+
+kmeans = KMeans(n_clusters = n_colors).fit(image_array_sample)
 
 labels = kmeans.predict(image_array)
 

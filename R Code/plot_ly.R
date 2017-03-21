@@ -98,7 +98,7 @@ Sys.setenv("plotly_api_key" = "ov1wD4YIF9qHWL6a6yy8")
 
 
 
-colorPlot3dMulti(paste('./Output/', csvDir[2], '/out.csv', sep=''), group=group06)
+colorPlot3dMulti(paste('./Output/', csvDir[2], '/out.csv', sep=''), group='all')
 
 
 fishList <- csvToList(paste('./GQIOutput/', csvDir[1], '/out.csv', sep=''))
@@ -124,38 +124,6 @@ p <- plot_ly(newDF, x = ~R, y = ~G, z = ~B, size=~Pct, color=~Cluster, text = ~p
   add_markers(color=I(rgbExp), size=~Pct, sizes=c(500,10000)) %>%
 layout(scene = list(xaxis=list(title='Red'), yaxis=list(title='Green'), zaxis=list(title='Blue')), title=paste(imNames[i], path))
 print(p)
-
-
-# mostly yellow with black accents (spots and bars)
-group01 <- c("chsem_04", "chraf_03", "chben_05",
-             "chaurip_03", "chand_03", "chcit_04",
-             "chple_01", "chfre_02")
-
-# yellow, white, and black predominant
-group02 <- c("chadi_05", "chauri_01", "chfal_04",
-             "choxy_03", "chmel_04", "chocel_04",
-             "chvag_03", "folon_02")
-
-# black and white
-group03 <- c("prguy_01", "hezos_03", "chmey_04",
-             "amhow_02", "charg_02")
-
-# stripes
-group04 <- c("amhow_02", "checur_01", "cheros_01",
-             "chetru_05", "chhoe_01")
-
-# yellow and white
-group05 <- c("chxant_03", "chxan_04", "chtrif_04",
-             "chpau_01", "chmer_05")
-
-# red accents
-group06 <- c("chcol_04", "chfla_02", "chlar_04",
-             "chpau_01", "chtrif_04")
-
-
-
-
-
 
 colorPlot3d(paste('./GQIOutput/', csvDir[2], '/out.csv', sep=''))
 
